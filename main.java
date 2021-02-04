@@ -26,7 +26,7 @@ public class main {
 	
 	public static void main(String args[]) {
 		
-		initEasy();
+		initExpert();
 		
 		displayGrid();
 		
@@ -327,43 +327,43 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 		unseenConfigs.get(0).first = true;
 		
 		int counter = -1;
-		while(vehicles.get(0).axisPoints.get(0) != 4) {	
+		while(vehicles.get(0).axisPoints.get(0) != successPoint) {	
 			counter++;
-
-			Coordinate currentCoordinate = unseenConfigs.get(0);	
-			System.out.println(currentCoordinate.depth);
-			for(Coordinate c: unseenConfigs) {		
-				System.out.print("(" + c.x + "," +  c.y + ")");
+			if(counter > -1 && unseenConfigs.get(0).first) maxDepth++;
+			Coordinate currentCoordinate = unseenConfigs.get(0);
+			if(currentCoordinate.depth < maxDepth -1 && !currentCoordinate.first) {	
+				unseenConfigs.remove(0);
+				//System.out.println("Skipped");
+				continue;
 			}
-			System.out.println();
+			
+			//System.out.println(currentCoordinate.depth);
+			//for(Coordinate c: unseenConfigs) {		
+			//	System.out.print("(" + c.x + "," +  c.y + ")");
+			//}
 			reconstructLayout(currentCoordinate);
 			unseenConfigs.add(currentCoordinate);
 			unseenConfigs.remove(0);
 			
 			
 			
-			if(currentCoordinate.depth < maxDepth -1) {	
-				continue;
-			}
+			
 				
-			displayGrid();
+			//displayGrid();
 			moveVehicle(currentCoordinate);
-			System.out.println("Vehicle Moved.");
-			displayGrid();
+			//System.out.println("Vehicle Moved.");
+			//displayGrid();
 			baseCoordinates = getBaseCoordinates();
 			gridHash = getTotalGridHash(baseCoordinates);	
+			
 			if(seenConfigs.containsKey(gridHash) && currentCoordinate.depth == maxDepth) {
 				unseenConfigs.remove(unseenConfigs.size()-1);
-			}
-			seenConfigs.put(gridHash, true);
-			
-			if(unseenConfigs.get(0).first && currentCoordinate.depth == maxDepth) {
-				System.out.println("Depth increased.");
-				maxDepth++;
 				continue;
 			}
+			else seenConfigs.put(gridHash, true);
 			
-			else if(currentCoordinate.depth == maxDepth ) {
+			
+			if(currentCoordinate.depth == maxDepth ) {
 				continue;			
 			}
 			
