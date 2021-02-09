@@ -17,15 +17,18 @@ public class main {
 	static List<Coordinate> unseenConfigs = new ArrayList<Coordinate>();
 	
 	static Map<Long, Boolean > seenConfigs = new HashMap<Long, Boolean>();
+	static Map<Long, List<Coordinate> > IDseenConfigs = new HashMap<Long, List<Coordinate>>();
 	static List<Coordinate> baseCoordinates = new ArrayList<Coordinate>();
 	static List<Coordinate> possibleActions = new ArrayList<Coordinate>();
 	
 	static int moveNumber = 0;
-	static int stepCount=0;
+	static int maxSize = 0;
 	static long gridHash = 0;
+	
 	
 	public static void main(String args[]) {
 		
+		//initEasy();
 		initExpert();
 		
 		displayGrid();
@@ -35,35 +38,25 @@ public class main {
 		//Get current layout in baseCoordinates, Hash the Layout, store in in seen layouts
 		baseCoordinates = getBaseCoordinates();
 		gridHash = getTotalGridHash(baseCoordinates);
-		seenConfigs.put(gridHash, true);
 		
-		//Collect all current possible moves
-		possibleActions = tallyPossibleMoves();
 		//System.out.println(possibleActions.size() + " possible moves");
 		//System.out.println();
 		//Add them to the unseenMoves list
-		for(Coordinate c: possibleActions) {
-			c.basePositionList = baseCoordinates;
-			//c.parentMove=moveNumber;
-			c.depth = 1;
-			unseenConfigs.add(c);
-		}
 		
-		//breadthFirstSearch();
+		breadthFirstSearch();
 		
 		//depthFirstSearch();
 		
-		iterativeDeepeningSearch();
+		//iterativeDeepeningSearch();
 		
 		long timeEnd = System.currentTimeMillis();
 		
-		
+		displayGrid();	
 		//printResults(moveNumber);
-		System.out.println("GOT IT!  \nTotal Moves = " + (moveNumber -1));
 		System.out.println("Total Time: " + (timeEnd - timeStart)/1000.0 + " seconds");
-		System.out.println("Required steps for success: " + stepCount);
-		
-		System.out.println("Length of Seen Configs: " + seenConfigs.size());
+		System.out.println("Total Size (Max Size of Unseen Configs): " + maxSize);
+		if(seenConfigs.size() != 0) System.out.println("Length of Seen Configs: " + seenConfigs.size());
+		else System.out.println("Length of Seen Configs: " + IDseenConfigs.size());
 	}
 	
 	
@@ -234,11 +227,25 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 	}
 	
 	public static void breadthFirstSearch() {
-		while(vehicles.get(0).axisPoints.get(0) != successPoint) {	
+		
+		seenConfigs.put(gridHash, true);
+		
+		//Collect all current possible moves
+		possibleActions = tallyPossibleMoves();
+		
+		for(Coordinate c: possibleActions) {
+			c.basePositionList = baseCoordinates;
+			//c.parentMove=moveNumber;
+			c.depth = 1;
+			unseenConfigs.add(c);
+		}
+		int counter = 0;
+		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
+			counter++;
+			if(unseenConfigs.size() > maxSize) maxSize = unseenConfigs.size();
 			Coordinate currentCoordinate = unseenConfigs.get(0);
 			reconstructLayout(currentCoordinate);
-			
-			
+					
 			moveVehicle(currentCoordinate);
 			//displayGrid();
 			unseenConfigs.remove(0);
@@ -247,10 +254,6 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			gridHash = getTotalGridHash(baseCoordinates);
 			
 			if(seenConfigs.containsKey(gridHash)) {
-				moveNumber++;			
-				//System.out.println("Repeat found ^^^. Eliminating Branch\n\n");
-				
-				//displayGrid();
 				continue;
 			}
 			
@@ -262,14 +265,14 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			
 		
 			for(Coordinate c: possibleActions) {
+				//displayGrid();
+				if(lookAheadHash(c)) continue;		
 				c.basePositionList = baseCoordinates;
-				c.parentMove = moveNumber;
 				c.depth = currentCoordinate.depth + 1;
 				unseenConfigs.add(c);
 				
 			}
-			//System.out.println(" Unseen Configs length: " + unseenConfigs.size());
-			moveNumber++;		
+			//System.out.println(" Unseen Configs length: " + unseenConfigs.size());	
 			//System.out.println("--------------------------------");
 			//System.out.println("Current Depth: "+ currentCoordinate.depth);
 			//displayGrid();			
@@ -278,8 +281,20 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 	}
 	
 	public static void depthFirstSearch() {
+		seenConfigs.put(gridHash, true);
+		
+		//Collect all current possible moves
+		possibleActions = tallyPossibleMoves();
+		
+		for(Coordinate c: possibleActions) {
+			c.basePositionList = baseCoordinates;
+			//c.parentMove=moveNumber;
+			c.depth = 1;
+			unseenConfigs.add(c);
+		}
+		
 		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
-			
+			if(unseenConfigs.size() > maxSize) maxSize = unseenConfigs.size();
 			Coordinate currentCoordinate = unseenConfigs.get(0);
 			reconstructLayout(unseenConfigs.get(0));
 			unseenConfigs.remove(0);
@@ -293,9 +308,7 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			
 			//System.out.println(gridHash);
 			if(seenConfigs.containsKey(gridHash)) {		
-				//System.out.println("Repeat found ^^^. Eliminating Branch\n\n");
-				moveNumber++;
-				
+				//System.out.println("Repeat found ^^^. Eliminating Branch\n\n");			
 				//displayGrid();
 				continue;
 			}
@@ -307,12 +320,12 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			
 			
 			for(Coordinate c: possibleActions) {
-				c.basePositionList = baseCoordinates;
+				if(lookAheadHash(c)) continue;		
+				c.basePositionList = baseCoordinates;	
 				unseenConfigs.add(0,c);
 				
 			}
-			//System.out.println(" Unseen Configs length: " + unseenConfigs.size());
-			moveNumber++;		
+			//System.out.println(" Unseen Configs length: " + unseenConfigs.size());		
 			//System.out.println("--------------------------------");		
 			
 			//displayGrid();			
@@ -322,64 +335,95 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 	
 	public static void iterativeDeepeningSearch() {
 		
-		int maxDepth = 1;
+		int maxDepth = 0;
 		
-		unseenConfigs.get(0).first = true;
+		long startingHash = gridHash;
 		
-		int counter = -1;
-		while(vehicles.get(0).axisPoints.get(0) != successPoint) {	
-			counter++;
-			if(counter > -1 && unseenConfigs.get(0).first) maxDepth++;
-			Coordinate currentCoordinate = unseenConfigs.get(0);
-			if(currentCoordinate.depth < maxDepth -1 && !currentCoordinate.first) {	
-				unseenConfigs.remove(0);
-				//System.out.println("Skipped");
-				continue;
-			}
+		
+		possibleActions = tallyPossibleMoves();
+		for(Coordinate c: possibleActions) {
+			c.basePositionList = baseCoordinates;
+			//c.parentMove=moveNumber;
+			c.depth = 0;
+			unseenConfigs.add(c);
+		}
+
+		IDseenConfigs.put(gridHash, possibleActions);
+		
+		Coordinate currentCoordinate = unseenConfigs.get(0);
+		
+		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
 			
-			//System.out.println(currentCoordinate.depth);
-			//for(Coordinate c: unseenConfigs) {		
-			//	System.out.print("(" + c.x + "," +  c.y + ")");
-			//}
-			reconstructLayout(currentCoordinate);
-			unseenConfigs.add(currentCoordinate);
+			if(unseenConfigs.size() > maxSize) maxSize = unseenConfigs.size();
+			
+			currentCoordinate = unseenConfigs.get(0);
 			unseenConfigs.remove(0);
 			
-			
-			
-			
+			if(currentCoordinate.depth < maxDepth -1) {
+				//System.out.println("Skipped");
 				
-			//displayGrid();
-			moveVehicle(currentCoordinate);
-			//System.out.println("Vehicle Moved.");
-			//displayGrid();
-			baseCoordinates = getBaseCoordinates();
-			gridHash = getTotalGridHash(baseCoordinates);	
-			
-			if(seenConfigs.containsKey(gridHash) && currentCoordinate.depth == maxDepth) {
-				unseenConfigs.remove(unseenConfigs.size()-1);
+	
+				unseenConfigs.addAll(0,IDseenConfigs.get(currentCoordinate.gridLayoutHash));
+				
+				if(unseenConfigs.size() == 0) {
+					unseenConfigs.addAll(IDseenConfigs.get(startingHash));
+					maxDepth++;	
+				}
 				continue;
 			}
-			else seenConfigs.put(gridHash, true);
-			
-			
-			if(currentCoordinate.depth == maxDepth ) {
-				continue;			
-			}
-			
-			possibleActions = tallyPossibleMoves();
-			for(Coordinate c: possibleActions) {
-				c.basePositionList = baseCoordinates;
-				c.depth = currentCoordinate.depth +1;
-				unseenConfigs.add(0,c);		
-			}
-			
+
+			reconstructLayout(currentCoordinate);
 			//displayGrid();
-			//displayVehiclePositions();								
-							
+			moveVehicle(currentCoordinate);
+			//displayGrid();
+			baseCoordinates = getBaseCoordinates();
+			gridHash = getTotalGridHash(baseCoordinates);
+		
+			
+		
+			if(IDseenConfigs.containsKey(gridHash) && currentCoordinate.depth == maxDepth) {
+				if(unseenConfigs.size() == 0) {
+					unseenConfigs.addAll(IDseenConfigs.get(startingHash));
+					maxDepth++;	
+				}
+				//System.out.println("Already Seen. Removed");
+				
+				continue;
+			}
+			
+			currentCoordinate.gridLayoutHash = gridHash;
+			
+			
+			if(currentCoordinate.parentCoordinate != null && currentCoordinate.depth == maxDepth)IDseenConfigs.get(currentCoordinate.parentCoordinate.gridLayoutHash).add(0,currentCoordinate);
+			
+			if(currentCoordinate.depth == maxDepth-1) {
+				possibleActions = tallyPossibleMoves();
+				for(Coordinate c: possibleActions) {
+					c.parentCoordinate = currentCoordinate;
+					c.basePositionList = baseCoordinates;
+					c.depth = currentCoordinate.depth +1;
+					unseenConfigs.add(0,c);		
+				}
+				
+				
+			}	
+			
+			if(unseenConfigs.size() == 0) {
+				unseenConfigs.addAll(IDseenConfigs.get(startingHash));
+				maxDepth++;
+			}
+			
+			if(!IDseenConfigs.containsKey(gridHash))IDseenConfigs.put(gridHash, new ArrayList<Coordinate>());
 		
 		}
-		displayGrid();	
+		
+	
+		while(currentCoordinate.parentCoordinate!=null) {
+			displayGrid();
+			reconstructLayout(currentCoordinate);
+			currentCoordinate = currentCoordinate.parentCoordinate;
+		}
+		
 	}
 	
 	
@@ -597,7 +641,7 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 		exp++;
 		
 		for(Coordinate c: baseCoordinates) {
-			hashValue += getBlockCode(c.x,c.y) * Math.pow(11, exp);
+			hashValue += getBlockCode(c.x,c.y) * Math.pow(13, exp);
 			exp--;
 		}
 		return hashValue;
@@ -605,6 +649,45 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 		
 	}
 	
+	public static boolean lookAheadHash(Coordinate c) {
+		//System.out.println("Car #" + c.id);	
+		long gridHash;
+		Vehicle vehicle = vehicles.get(c.id);
+		//System.out.println("Old Car Coordinate: " + baseCoordinates.get(c.id).x + "," + baseCoordinates.get(c.id).y + " ");
+		if(vehicle.direction) {
+			if(vehicle.axisPoints.get(0) == c.y) {
+				baseCoordinates.get(c.id).y --;
+				gridHash = (getTotalGridHash(baseCoordinates));
+				baseCoordinates.get(c.id).y ++;
+				
+			}
+			else {
+				baseCoordinates.get(c.id).y++;
+				gridHash = (getTotalGridHash(baseCoordinates));
+				baseCoordinates.get(c.id).y--;
+			}
+		}
+		
+		else {
+			if(vehicle.axisPoints.get(0) == c.x) {
+				baseCoordinates.get(c.id).x--;
+				gridHash = (getTotalGridHash(baseCoordinates));
+				baseCoordinates.get(c.id).x++;
+			}
+			
+			else {
+				baseCoordinates.get(c.id).x++;
+				gridHash = (getTotalGridHash(baseCoordinates));
+				baseCoordinates.get(c.id).x--;
+			}
+		}
+
+		if(seenConfigs.containsKey(gridHash)) {
+			return true;
+		}
+		return false;
+		
+	}
 	
 	public static void displayVehiclePositions() {
 		byte x,y;
@@ -628,10 +711,9 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 	
 	public static void printResults(int moveNumber) {
 		if(moveNumber == 0) return;
-		stepCount++;
 		reconstructLayout(unseenConfigs.get(moveNumber));
 		displayGrid();
-		printResults(unseenConfigs.get(moveNumber).parentMove);
+		//printResults(unseenConfigs.get(moveNumber).parentMove);
 	}
 	
 
