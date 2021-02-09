@@ -8,9 +8,9 @@ public class Coordinate{
 	byte x, y;
 	byte id;
 	List<Coordinate> basePositionList = new ArrayList<Coordinate>();
-	int parentMove;
+	long gridLayoutHash = 0;
+	Coordinate parentCoordinate;
 	int depth;
-	boolean first = false;
 	
     public Coordinate(byte x, byte y) {
     	this.x = x;
