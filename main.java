@@ -1,35 +1,53 @@
 package p1;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.JFrame;
 
 
 public class main {
 	
 	final static byte gridSize = 6;
+	final static byte cellSize = 80;
 	final static byte successPoint = 4;
+	final static boolean watchProcess = false;
+	
+	
+	static Puzzle_GUI GUI;
 	
 	static List<Vehicle> vehicles = new ArrayList<Vehicle>();
 	static Map<Short, Byte > blockHash = new HashMap<Short, Byte>();
-	static List<Coordinate> unseenConfigs = new ArrayList<Coordinate>();
 	
+	static List<Coordinate> unseenConfigs = new ArrayList<Coordinate>();	
 	static Map<Long, Boolean > seenConfigs = new HashMap<Long, Boolean>();
 	static Map<Long, List<Coordinate> > IDseenConfigs = new HashMap<Long, List<Coordinate>>();
+	
 	static List<Coordinate> baseCoordinates = new ArrayList<Coordinate>();
 	static List<Coordinate> possibleActions = new ArrayList<Coordinate>();
+	
+	static List<Coordinate> solutionSteps = new ArrayList<Coordinate>();
 	
 	static int moveNumber = 0;
 	static int maxSize = 0;
 	static long gridHash = 0;
+	static Coordinate currentCoordinate;
 	
 	
-	public static void main(String args[]) {
+	public static void main(String args[]) throws InterruptedException {
+		
+		
 		
 		//initEasy();
-		initExpert();
+		initEasy();
+		
+		initUI();
+		
 		
 		displayGrid();
 		
@@ -57,6 +75,23 @@ public class main {
 		System.out.println("Total Size (Max Size of Unseen Configs): " + maxSize);
 		if(seenConfigs.size() != 0) System.out.println("Length of Seen Configs: " + seenConfigs.size());
 		else System.out.println("Length of Seen Configs: " + IDseenConfigs.size());
+		
+		
+		
+		while(currentCoordinate.parentCoordinate!=null) {
+			//displayGrid();
+			//reconstructLayout(currentCoordinate);
+			solutionSteps.add(0,currentCoordinate);
+			currentCoordinate = currentCoordinate.parentCoordinate;
+		}
+		
+		System.out.println("Total Steps to Completion " + solutionSteps.size());
+		for(Coordinate c: solutionSteps) {
+			reconstructLayout(c);
+			GUI.constructGrid(vehicles);
+			TimeUnit.MILLISECONDS.sleep(1500);
+			
+		}
 	}
 	
 	
@@ -67,61 +102,61 @@ public class main {
 		
 		
 		//                          id | byte x |  byte y | direction | size
-Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
+Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
 		for(short num: getCoordinateHashCodeList(victoryCar)) {
 			blockHash.put(num, (byte)0);
 		}
 		vehicles.add(victoryCar);
 		
-		Vehicle v1 = new Vehicle( (byte) 1, (byte)0 , (byte)4, true,  false);
+		Vehicle v1 = new Vehicle( (byte) 1, (byte)0 , (byte)4, true,  false, Color.BLUE);
 		for(short num: getCoordinateHashCodeList(v1)) {
 			blockHash.put(num, (byte)1);
 		}
 		vehicles.add(v1);
 		
-		Vehicle v2 = new Vehicle( (byte) 2, (byte)1 , (byte)4, true,  false);
+		Vehicle v2 = new Vehicle( (byte) 2, (byte)1 , (byte)4, true,  false, Color.CYAN);
 		for(short num: getCoordinateHashCodeList(v2)) {
 			blockHash.put(num, (byte)2);
 		}
 		vehicles.add(v2);
 		
-		Vehicle v3 = new Vehicle((byte) 3, (byte)2 , (byte)0, true,  false);
+		Vehicle v3 = new Vehicle((byte) 3, (byte)2 , (byte)0, true,  false, Color.GREEN);
 		for(short num: getCoordinateHashCodeList(v3)) {
 			blockHash.put(num, (byte)3);
 		}
 		vehicles.add(v3);
 		
-		Vehicle v4 = new Vehicle( (byte)4,  (byte)2 , (byte)2, true,  false);
+		Vehicle v4 = new Vehicle( (byte)4,  (byte)2 , (byte)2, true,  false, Color.ORANGE);
 		for(short num: getCoordinateHashCodeList(v4)) {
 			blockHash.put(num, (byte)4);
 		}
 		vehicles.add(v4);
 		
-		Vehicle v5 = new Vehicle((byte) 5,  (byte)2 , (byte)4, false,  false);
+		Vehicle v5 = new Vehicle((byte) 5,  (byte)2 , (byte)4, false,  false, Color.YELLOW);
 		for(short num: getCoordinateHashCodeList(v5)) {
 			blockHash.put(num, (byte)5);
 		}
 		vehicles.add(v5);
 		
-		Vehicle v6 = new Vehicle((byte) 6,  (byte)2 , (byte)5, false,  false);
+		Vehicle v6 = new Vehicle((byte) 6,  (byte)2 , (byte)5, false,  false, Color.WHITE);
 		for(short num: getCoordinateHashCodeList(v6)) {
 			blockHash.put(num, (byte)6);
 		}
 		vehicles.add(v6);
 		
-		Vehicle v7 = new Vehicle((byte)7,(byte)3 , (byte)1, true,  true);
+		Vehicle v7 = new Vehicle((byte)7,(byte)3 , (byte)1, true,  true, Color.PINK);
 		for(short num: getCoordinateHashCodeList(v7)) {
 			blockHash.put(num, (byte)7);
 		}
 		vehicles.add(v7);
 		
-		Vehicle v8 = new Vehicle((byte) 8, (byte)4 , (byte)1, true,  false);
+		Vehicle v8 = new Vehicle((byte) 8, (byte)4 , (byte)1, true,  false, Color.MAGENTA);
 		for(short num: getCoordinateHashCodeList(v8)) {
 			blockHash.put(num, (byte)8);
 		}
 		vehicles.add(v8);
 		
-		Vehicle v9 = new Vehicle( (byte)9, (byte)4 , (byte)4, true,  false);
+		Vehicle v9 = new Vehicle( (byte)9, (byte)4 , (byte)4, true,  false, Color.BLACK);
 		for(short num: getCoordinateHashCodeList(v9)) {
 			blockHash.put(num, (byte)9);
 		}
@@ -141,79 +176,79 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 		
 		
 		//                          id | byte x |  byte y | direction | size
-Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
+Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
 		for(short num: getCoordinateHashCodeList(victoryCar)) {
 			blockHash.put(num, (byte)0);
 		}
 		vehicles.add(victoryCar);
 		
-		Vehicle v1 = new Vehicle( (byte) 1, (byte)0 , (byte)0, false,  true);
+		Vehicle v1 = new Vehicle( (byte) 1, (byte)0 , (byte)0, false,  true, Color.BLUE);
 		for(short num: getCoordinateHashCodeList(v1)) {
 			blockHash.put(num, (byte)1);
 		}
 		vehicles.add(v1);
 		
-		Vehicle v2 = new Vehicle( (byte) 2, (byte)0 , (byte)2, false,  false);
+		Vehicle v2 = new Vehicle( (byte) 2, (byte)0 , (byte)2, false,  false, Color.CYAN);
 		for(short num: getCoordinateHashCodeList(v2)) {
 			blockHash.put(num, (byte)2);
 		}
 		vehicles.add(v2);
 		
-		Vehicle v3 = new Vehicle((byte) 3, (byte)0 , (byte)4, true,  false);
+		Vehicle v3 = new Vehicle((byte) 3, (byte)0 , (byte)4, true,  false, Color.GREEN);
 		for(short num: getCoordinateHashCodeList(v3)) {
 			blockHash.put(num, (byte)3);
 		}
 		vehicles.add(v3);
 		
-		Vehicle v4 = new Vehicle( (byte)4,  (byte)1 , (byte)1, false,  false);
+		Vehicle v4 = new Vehicle( (byte)4,  (byte)1 , (byte)1, false,  false, Color.MAGENTA);
 		for(short num: getCoordinateHashCodeList(v4)) {
 			blockHash.put(num, (byte)4);
 		}
 		vehicles.add(v4);
 		
-		Vehicle v5 = new Vehicle((byte) 5,  (byte)1 , (byte)5, false,  false);
+		Vehicle v5 = new Vehicle((byte) 5,  (byte)1 , (byte)5, false,  false, Color.YELLOW);
 		for(short num: getCoordinateHashCodeList(v5)) {
 			blockHash.put(num, (byte)5);
 		}
 		vehicles.add(v5);
 		
-		Vehicle v6 = new Vehicle((byte) 6,  (byte)2 , (byte)2, true,  false);
+		Vehicle v6 = new Vehicle((byte) 6,  (byte)2 , (byte)2, true,  false, Color.WHITE);
 		for(short num: getCoordinateHashCodeList(v6)) {
 			blockHash.put(num, (byte)6);
 		}
 		vehicles.add(v6);
 		
-		Vehicle v7 = new Vehicle((byte)7,(byte)2 , (byte)4, false,  false);
+		Vehicle v7 = new Vehicle((byte)7,(byte)2 , (byte)4, false,  false, Color.DARK_GRAY);
 		for(short num: getCoordinateHashCodeList(v7)) {
 			blockHash.put(num, (byte)7);
 		}
 		vehicles.add(v7);
 		
-		Vehicle v8 = new Vehicle((byte) 8, (byte)3 , (byte)0, true,  false);
+		Vehicle v8 = new Vehicle((byte) 8, (byte)3 , (byte)0, true,  false, Color.RED.darker().darker());
 		for(short num: getCoordinateHashCodeList(v8)) {
 			blockHash.put(num, (byte)8);
 		}
 		vehicles.add(v8);
 		
-		Vehicle v9 = new Vehicle( (byte)9, (byte)3 , (byte)2, false,  false);
+		Vehicle v9 = new Vehicle( (byte)9, (byte)3 , (byte)2, false,  false, Color.ORANGE);
 		for(short num: getCoordinateHashCodeList(v9)) {
 			blockHash.put(num, (byte)9);
 		}
 		vehicles.add(v9);
 		
-		Vehicle v10 = new Vehicle( (byte)10, (byte)3 , (byte)5, false,  true);
+		Vehicle v10 = new Vehicle( (byte)10, (byte)3 , (byte)5, false,  true, Color.PINK);
 		for(short num: getCoordinateHashCodeList(v10)) {
 			blockHash.put(num, (byte)10);
 		}
 		vehicles.add(v10);
 		
-		Vehicle v11 = new Vehicle( (byte)11, (byte)4 , (byte)3, true,  false);
+		Vehicle v11 = new Vehicle( (byte)11, (byte)4 , (byte)3, true,  false, Color.LIGHT_GRAY);
 		for(short num: getCoordinateHashCodeList(v11)) {
 			blockHash.put(num, (byte)11);
 		}
 		vehicles.add(v11);
 		
-		Vehicle v12 = new Vehicle( (byte)12, (byte)5 , (byte)0, true,  true);
+		Vehicle v12 = new Vehicle( (byte)12, (byte)5 , (byte)0, true,  true, Color.BLACK);
 		for(short num: getCoordinateHashCodeList(v12)) {
 			blockHash.put(num, (byte)12);
 		}
@@ -226,27 +261,39 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 		
 	}
 	
-	public static void breadthFirstSearch() {
+	public static void initUI() {
+		GUI = new Puzzle_GUI(vehicles);
+		GUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		GUI.setSize(gridSize*cellSize, gridSize*cellSize);
+		GUI.setVisible(true);
+	}
+	public static void breadthFirstSearch() throws InterruptedException {
 		
 		seenConfigs.put(gridHash, true);
+		
 		
 		//Collect all current possible moves
 		possibleActions = tallyPossibleMoves();
 		
 		for(Coordinate c: possibleActions) {
-			c.basePositionList = baseCoordinates;
-			//c.parentMove=moveNumber;
+			c.basePositionList = baseCoordinates;	
 			c.depth = 1;
 			unseenConfigs.add(c);
 		}
-		int counter = 0;
+
 		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
-			counter++;
+			
 			if(unseenConfigs.size() > maxSize) maxSize = unseenConfigs.size();
-			Coordinate currentCoordinate = unseenConfigs.get(0);
+			currentCoordinate = unseenConfigs.get(0);
 			reconstructLayout(currentCoordinate);
 					
 			moveVehicle(currentCoordinate);
+			if(watchProcess) {
+				GUI.constructGrid(vehicles);
+				TimeUnit.MILLISECONDS.sleep(1000);
+			}
+			
+			//if(counter == 5) break;
 			//displayGrid();
 			unseenConfigs.remove(0);
 			//displayVehiclePositions();
@@ -268,6 +315,7 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 				//displayGrid();
 				if(lookAheadHash(c)) continue;		
 				c.basePositionList = baseCoordinates;
+				c.parentCoordinate = currentCoordinate;
 				c.depth = currentCoordinate.depth + 1;
 				unseenConfigs.add(c);
 				
@@ -275,12 +323,14 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			//System.out.println(" Unseen Configs length: " + unseenConfigs.size());	
 			//System.out.println("--------------------------------");
 			//System.out.println("Current Depth: "+ currentCoordinate.depth);
-			//displayGrid();			
+			//displayGrid();	
+					
 		
 		}
+		
 	}
 	
-	public static void depthFirstSearch() {
+	public static void depthFirstSearch() throws InterruptedException {
 		seenConfigs.put(gridHash, true);
 		
 		//Collect all current possible moves
@@ -295,11 +345,15 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 		
 		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
 			if(unseenConfigs.size() > maxSize) maxSize = unseenConfigs.size();
-			Coordinate currentCoordinate = unseenConfigs.get(0);
+			currentCoordinate = unseenConfigs.get(0);
 			reconstructLayout(unseenConfigs.get(0));
 			unseenConfigs.remove(0);
 			
 			moveVehicle(currentCoordinate);
+			if(watchProcess) {
+				GUI.constructGrid(vehicles);
+				TimeUnit.MILLISECONDS.sleep(1000);
+			}
 			
 			baseCoordinates = getBaseCoordinates();
 			//displayGrid();
@@ -321,7 +375,8 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			
 			for(Coordinate c: possibleActions) {
 				if(lookAheadHash(c)) continue;		
-				c.basePositionList = baseCoordinates;	
+				c.basePositionList = baseCoordinates;
+				c.parentCoordinate = currentCoordinate;
 				unseenConfigs.add(0,c);
 				
 			}
@@ -333,12 +388,11 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 		}
 	}
 	
-	public static void iterativeDeepeningSearch() {
+	public static void iterativeDeepeningSearch() throws InterruptedException {
 		
 		int maxDepth = 0;
 		
 		long startingHash = gridHash;
-		
 		
 		possibleActions = tallyPossibleMoves();
 		for(Coordinate c: possibleActions) {
@@ -350,7 +404,7 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 
 		IDseenConfigs.put(gridHash, possibleActions);
 		
-		Coordinate currentCoordinate = unseenConfigs.get(0);
+		currentCoordinate = unseenConfigs.get(0);
 		
 		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
 			
@@ -375,6 +429,10 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			reconstructLayout(currentCoordinate);
 			//displayGrid();
 			moveVehicle(currentCoordinate);
+			if(watchProcess) {
+				GUI.constructGrid(vehicles);
+				TimeUnit.MILLISECONDS.sleep(1000);
+			}
 			//displayGrid();
 			baseCoordinates = getBaseCoordinates();
 			gridHash = getTotalGridHash(baseCoordinates);
@@ -415,13 +473,6 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false);
 			
 			if(!IDseenConfigs.containsKey(gridHash))IDseenConfigs.put(gridHash, new ArrayList<Coordinate>());
 		
-		}
-		
-	
-		while(currentCoordinate.parentCoordinate!=null) {
-			displayGrid();
-			reconstructLayout(currentCoordinate);
-			currentCoordinate = currentCoordinate.parentCoordinate;
 		}
 		
 	}
