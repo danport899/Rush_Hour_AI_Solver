@@ -14,7 +14,7 @@ import javax.swing.JFrame;
 public class main {
 	
 	final static byte gridSize = 6;
-	final static byte cellSize = 80;
+	final static byte cellSize = 100;
 	final static byte successPoint = 4;
 	final static boolean watchProcess = false;
 	
@@ -42,14 +42,16 @@ public class main {
 	public static void main(String args[]) throws InterruptedException {
 		
 		
-		
-		//initEasy();
+		//initWeaknessExample();
 		initEasy();
+		//initExpert();
 		
 		initUI();
 		
 		
 		displayGrid();
+		Scanner scanner = new Scanner(System.in);
+		scanner.nextLine();
 		
 		long timeStart = System.currentTimeMillis();
 		
@@ -61,11 +63,11 @@ public class main {
 		//System.out.println();
 		//Add them to the unseenMoves list
 		
-		breadthFirstSearch();
+		//breadthFirstSearch();
 		
 		//depthFirstSearch();
 		
-		//iterativeDeepeningSearch();
+		iterativeDeepeningSearch();
 		
 		long timeEnd = System.currentTimeMillis();
 		
@@ -85,15 +87,71 @@ public class main {
 			currentCoordinate = currentCoordinate.parentCoordinate;
 		}
 		
+		
 		System.out.println("Total Steps to Completion " + solutionSteps.size());
 		for(Coordinate c: solutionSteps) {
 			reconstructLayout(c);
 			GUI.constructGrid(vehicles);
 			TimeUnit.MILLISECONDS.sleep(1500);
-			
 		}
+		
+		vehicles.get(0).axisPoints.set(0, successPoint);
+		GUI.constructGrid(vehicles);
 	}
 	
+	public static void initWeaknessExample() {
+		refreshGrid();	
+		
+		//                          id | byte x |  byte y | direction | size
+Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
+		for(short num: getCoordinateHashCodeList(victoryCar)) {
+			blockHash.put(num, (byte)0);
+		}
+		vehicles.add(victoryCar);
+		
+		Vehicle v1 = new Vehicle( (byte) 1, (byte)0 , (byte)4, true,  false, Color.BLUE);
+		for(short num: getCoordinateHashCodeList(v1)) {
+			blockHash.put(num, (byte)1);
+		}
+		vehicles.add(v1);
+		
+		Vehicle v2 = new Vehicle( (byte) 2, (byte)1 , (byte)4, true,  false, Color.CYAN);
+		for(short num: getCoordinateHashCodeList(v2)) {
+			blockHash.put(num, (byte)2);
+		}
+		vehicles.add(v2);
+		
+		Vehicle v3 = new Vehicle((byte) 3, (byte)2 , (byte)0, true,  false, Color.GREEN);
+		for(short num: getCoordinateHashCodeList(v3)) {
+			blockHash.put(num, (byte)3);
+		}
+		vehicles.add(v3);
+		
+		Vehicle v4 = new Vehicle( (byte)4,  (byte)5 , (byte)0, true,  true, Color.ORANGE);
+		for(short num: getCoordinateHashCodeList(v4)) {
+			blockHash.put(num, (byte)4);
+		}
+		vehicles.add(v4);
+		
+		Vehicle v5 = new Vehicle((byte) 5,  (byte)2 , (byte)4, false,  false, Color.YELLOW);
+		for(short num: getCoordinateHashCodeList(v5)) {
+			blockHash.put(num, (byte)5);
+		}
+		vehicles.add(v5);
+		
+		Vehicle v6 = new Vehicle( (byte)6, (byte)3 , (byte)1, false,  false, Color.PINK);
+		for(short num: getCoordinateHashCodeList(v6)) {
+			blockHash.put(num, (byte)6);
+		}
+		vehicles.add(v6);
+		
+		Vehicle v7 = new Vehicle( (byte) 7, (byte) 0 , (byte)2, false,  false, Color.MAGENTA);
+		for(short num: getCoordinateHashCodeList(victoryCar)) {
+			blockHash.put(num, (byte)7);
+		}
+		vehicles.add(v7);
+
+	}
 	
 	public static void initEasy() {
 		// Create all 36 slots by their hash code.
