@@ -1,10 +1,12 @@
 package p1;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Vehicle {
 	
+	Color color;
 	boolean direction;
 	boolean size;
 	byte id;
@@ -12,11 +14,11 @@ public class Vehicle {
 	List<Byte> axisPoints = new ArrayList<Byte>();
 	
 	
-	public Vehicle(byte id, byte x, byte y, boolean direction, boolean size) {
-		
+	public Vehicle(byte id, byte x, byte y, boolean direction, boolean size, Color color) {
 		// direction false = horizontal. true = vertical;
 		// size false = 2(car); true = 3(bus)
 		this.id = id;
+		this.color = color;
 		this.direction = direction;
 		this.size = size;
 		if(direction) {
