@@ -33,3 +33,14 @@ in the Seen list, its Unseen children are placed in the beginning as opposed to 
 	
 Iterative Deepening Search increments its depth by one every time it reaches the final node in a given depth. Much like DFS, child nodes 
 are placed at the beginning on the Unseen list until the max depth is reached. 
+
+Results
+
+By observing the results produced by the program, the respective strengths and weakness of each implemenation became clear. Breadth-First, 
+while undeniably the fastest, is the most memory inefficient, requiring the most moves visited. Additionally, the solution it found is also 
+the most inefficient, requiring well over thousands of moves to be solved.
+
+IDS, while taking the longest, also proves to require the least amount of memory, also finding the most shortest possible solution. 
+
+DPS, meanwhile, sits in between the other search methods, providing the shortest possible path, taking more time than DPS and requiring 
+more memory than IDS.
