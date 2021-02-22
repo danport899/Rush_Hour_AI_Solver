@@ -15,22 +15,33 @@ public class main {
 	
 	final static byte gridSize = 6;
 	final static byte cellSize = 100;
+	//This indicates on what X coordinate the Red (Victory) Car should be positioned in order to declare the puzzle solved
 	final static byte successPoint = 4;
+	/* Setting watchProcess to true allows the GUI to showcase how each algorithm attempts to solve the puzzle
+	there are thousands of moves to consider, so it is not meant to be seen all the way through. The program
+	by default shows the solution to the puzzle once it's found. */
 	final static boolean watchProcess = false;
 	
 	
 	static Puzzle_GUI GUI;
 	
+	//This List stores every vehicle on the board
 	static List<Vehicle> vehicles = new ArrayList<Vehicle>();
+	// This HashMap stores every point on the board, indicating whether or not it is occupied by a -1 or the ID of the car occupying it
 	static Map<Short, Byte > blockHash = new HashMap<Short, Byte>();
 	
 	static List<Coordinate> unseenConfigs = new ArrayList<Coordinate>();	
 	static Map<Long, Boolean > seenConfigs = new HashMap<Long, Boolean>();
+	// This seen Configurations Map was designed specifically for Iterative Deepening Search
 	static Map<Long, List<Coordinate> > IDseenConfigs = new HashMap<Long, List<Coordinate>>();
 	
+	/*This stores the base (x,y) coordinates of every car on the board at any given stage. The base coordinate
+	is always the left-most or bottom-most point of the vehicle depending on its orientation */
 	static List<Coordinate> baseCoordinates = new ArrayList<Coordinate>();
-	static List<Coordinate> possibleActions = new ArrayList<Coordinate>();
 	
+	//possibleActions all possible moves at a given stage
+	static List<Coordinate> possibleActions = new ArrayList<Coordinate>();
+	//solutionSteps allows the program to backtrack once the solution is found and display it being solved on the GUI.
 	static List<Coordinate> solutionSteps = new ArrayList<Coordinate>();
 	
 	static int moveNumber = 0;
@@ -39,19 +50,23 @@ public class main {
 	static Coordinate currentCoordinate;
 	
 	
-	public static void main(String args[]) throws InterruptedException {
+	public static void main(String args[]) throws InterruptedException {	
 		
-		
-		//initWeaknessExample();
+		/*
+		initEasy and initExpert are two different starting configurations of the board. Only one 
+		should be uncommented at a time. initWeakness is meant to show the weakness of Blind Search,
+		a simple solution for a person can get complex for a computer.
+		Difficult was labeled by the creators of the game. */
+
 		initEasy();
 		//initExpert();
+		
+		//initWeaknessExample();
 		
 		initUI();
 		
 		
 		displayGrid();
-		Scanner scanner = new Scanner(System.in);
-		scanner.nextLine();
 		
 		long timeStart = System.currentTimeMillis();
 		
@@ -59,9 +74,9 @@ public class main {
 		baseCoordinates = getBaseCoordinates();
 		gridHash = getTotalGridHash(baseCoordinates);
 		
-		//System.out.println(possibleActions.size() + " possible moves");
-		//System.out.println();
-		//Add them to the unseenMoves list
+
+		
+		//These are all three algorithms. Only one should be uncommented at a time. 
 		
 		//breadthFirstSearch();
 		
@@ -72,7 +87,7 @@ public class main {
 		long timeEnd = System.currentTimeMillis();
 		
 		displayGrid();	
-		//printResults(moveNumber);
+	
 		System.out.println("Total Time: " + (timeEnd - timeStart)/1000.0 + " seconds");
 		System.out.println("Total Size (Max Size of Unseen Configs): " + maxSize);
 		if(seenConfigs.size() != 0) System.out.println("Length of Seen Configs: " + seenConfigs.size());
@@ -81,8 +96,6 @@ public class main {
 		
 		
 		while(currentCoordinate.parentCoordinate!=null) {
-			//displayGrid();
-			//reconstructLayout(currentCoordinate);
 			solutionSteps.add(0,currentCoordinate);
 			currentCoordinate = currentCoordinate.parentCoordinate;
 		}
@@ -102,8 +115,8 @@ public class main {
 	public static void initWeaknessExample() {
 		refreshGrid();	
 		
-		//                          id | byte x |  byte y | direction | size
-Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
+		
+                Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
 		for(short num: getCoordinateHashCodeList(victoryCar)) {
 			blockHash.put(num, (byte)0);
 		}
@@ -159,8 +172,8 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 		
 		
 		
-		//                          id | byte x |  byte y | direction | size
-Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
+		//                               
+                Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
 		for(short num: getCoordinateHashCodeList(victoryCar)) {
 			blockHash.put(num, (byte)0);
 		}
@@ -229,12 +242,9 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 	}
 	
 	public static void initExpert() {
-	refreshGrid();
+	        refreshGrid();
 		
-		
-		
-		//                          id | byte x |  byte y | direction | size
-Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
+                Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, Color.RED);
 		for(short num: getCoordinateHashCodeList(victoryCar)) {
 			blockHash.put(num, (byte)0);
 		}
@@ -325,11 +335,13 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 		GUI.setSize(gridSize*cellSize, gridSize*cellSize);
 		GUI.setVisible(true);
 	}
+	
 	public static void breadthFirstSearch() throws InterruptedException {
 		
+		
+		
 		seenConfigs.put(gridHash, true);
-		
-		
+
 		//Collect all current possible moves
 		possibleActions = tallyPossibleMoves();
 		
@@ -340,37 +352,36 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 		}
 
 		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
-			
+			//Tracks the largest amount of possible moves stored in unSeenConfigs
 			if(unseenConfigs.size() > maxSize) maxSize = unseenConfigs.size();
+			//Gets next move from the list then removes it
 			currentCoordinate = unseenConfigs.get(0);
+			unseenConfigs.remove(0);
+			//Resets the board to the configuration needed to process the move
 			reconstructLayout(currentCoordinate);
 					
 			moveVehicle(currentCoordinate);
+			
 			if(watchProcess) {
 				GUI.constructGrid(vehicles);
 				TimeUnit.MILLISECONDS.sleep(1000);
 			}
-			
-			//if(counter == 5) break;
-			//displayGrid();
-			unseenConfigs.remove(0);
-			//displayVehiclePositions();
+
 			baseCoordinates = getBaseCoordinates();
+			//This hashes the grid configuration so that it can be quickly compared with the Seen Configurations list
 			gridHash = getTotalGridHash(baseCoordinates);
-			
+			//If it's already been seen, skip processing
 			if(seenConfigs.containsKey(gridHash)) {
 				continue;
 			}
-			
+			//Otherwise add it to the Seen Configs Map
 			seenConfigs.put(gridHash, true);	
 			
-			
+			//Collect all possible moves
 			possibleActions = tallyPossibleMoves();
-			//System.out.println();
-			
-		
+
 			for(Coordinate c: possibleActions) {
-				//displayGrid();
+				//Store relevant data in the Coordinate object 
 				if(lookAheadHash(c)) continue;		
 				c.basePositionList = baseCoordinates;
 				c.parentCoordinate = currentCoordinate;
@@ -378,12 +389,6 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 				unseenConfigs.add(c);
 				
 			}
-			//System.out.println(" Unseen Configs length: " + unseenConfigs.size());	
-			//System.out.println("--------------------------------");
-			//System.out.println("Current Depth: "+ currentCoordinate.depth);
-			//displayGrid();	
-					
-		
 		}
 		
 	}
@@ -396,39 +401,38 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 		
 		for(Coordinate c: possibleActions) {
 			c.basePositionList = baseCoordinates;
-			//c.parentMove=moveNumber;
 			c.depth = 1;
 			unseenConfigs.add(c);
 		}
 		
 		while(vehicles.get(0).axisPoints.get(0) != successPoint) {
+			
 			if(unseenConfigs.size() > maxSize) maxSize = unseenConfigs.size();
+			
 			currentCoordinate = unseenConfigs.get(0);
-			reconstructLayout(unseenConfigs.get(0));
 			unseenConfigs.remove(0);
 			
+			reconstructLayout(unseenConfigs.get(0));
+
 			moveVehicle(currentCoordinate);
+			
 			if(watchProcess) {
 				GUI.constructGrid(vehicles);
 				TimeUnit.MILLISECONDS.sleep(1000);
 			}
 			
 			baseCoordinates = getBaseCoordinates();
-			//displayGrid();
-			//displayVehiclePositions();
+	
 			gridHash = getTotalGridHash(baseCoordinates);
 			
-			//System.out.println(gridHash);
+	
 			if(seenConfigs.containsKey(gridHash)) {		
-				//System.out.println("Repeat found ^^^. Eliminating Branch\n\n");			
-				//displayGrid();
 				continue;
 			}
 			
 			seenConfigs.put(gridHash, true);	
 			
 			possibleActions = tallyPossibleMoves();
-			//System.out.println();
 			
 			
 			for(Coordinate c: possibleActions) {
@@ -437,25 +441,21 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 				c.parentCoordinate = currentCoordinate;
 				unseenConfigs.add(0,c);
 				
-			}
-			//System.out.println(" Unseen Configs length: " + unseenConfigs.size());		
-			//System.out.println("--------------------------------");		
-			
-			//displayGrid();			
-		
+			}				
 		}
 	}
 	
 	public static void iterativeDeepeningSearch() throws InterruptedException {
 		
+		//This tracks the maximum depth which is increased by one once the previous max depth is fully explored
 		int maxDepth = 0;
 		
 		long startingHash = gridHash;
 		
 		possibleActions = tallyPossibleMoves();
+		
 		for(Coordinate c: possibleActions) {
 			c.basePositionList = baseCoordinates;
-			//c.parentMove=moveNumber;
 			c.depth = 0;
 			unseenConfigs.add(c);
 		}
@@ -472,9 +472,7 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 			unseenConfigs.remove(0);
 			
 			if(currentCoordinate.depth < maxDepth -1) {
-				//System.out.println("Skipped");
 				
-	
 				unseenConfigs.addAll(0,IDseenConfigs.get(currentCoordinate.gridLayoutHash));
 				
 				if(unseenConfigs.size() == 0) {
@@ -491,7 +489,7 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 				GUI.constructGrid(vehicles);
 				TimeUnit.MILLISECONDS.sleep(1000);
 			}
-			//displayGrid();
+
 			baseCoordinates = getBaseCoordinates();
 			gridHash = getTotalGridHash(baseCoordinates);
 		
@@ -501,9 +499,7 @@ Vehicle victoryCar = new Vehicle( (byte) 0, (byte) 0 , (byte)3, false,  false, C
 				if(unseenConfigs.size() == 0) {
 					unseenConfigs.addAll(IDseenConfigs.get(startingHash));
 					maxDepth++;	
-				}
-				//System.out.println("Already Seen. Removed");
-				
+				}			
 				continue;
 			}
 			
