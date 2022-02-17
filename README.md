@@ -1,4 +1,4 @@
-# Rush-Hour--Solver
+# Rush-Hour-Game-Solver
 
 The Rush Hour AI Solver was implemented as an opportunity to explore the strengths and weaknesses of varying Blind Search algorithms. 
 Using the board and rules of the tabletop game, Rush Hour, similar to any simple "Unblock the Block" game, I implemented 3 algorithms 
