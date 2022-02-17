@@ -1,4 +1,4 @@
-# Rush-Hour-AI-Solver
+# Rush-Hour--Solver
 
 The Rush Hour AI Solver was implemented as an opportunity to explore the strengths and weaknesses of varying Blind Search algorithms. 
 Using the board and rules of the tabletop game, Rush Hour, similar to any simple "Unblock the Block" game, I implemented 3 algorithms 
@@ -23,12 +23,12 @@ memory and processing complexity. This list took the form of a HashMap so config
 
 The Algorithms
 
-Breadth-First Search iterates through every possible, legal move at a given depth before proceeding to the next depth. As the algorithm 
-processes the a move, it transfers it to the Seen HashMap and adds the child nodes to the end of the Unseen list. This ensures the 
+Breadth-First Search iterates through every possible legal move at a given depth before proceeding to the next depth. As the algorithm 
+processes a move, it transfers it to the Seen HashMap and adds the child nodes to the end of the Unseen list. This ensures the 
 algorithm inspects the entire row of nodes before descending to the following depth into the next row of child nodes. 
 
 Instead of iterating through entire rows, Depth-First Search descends down the first path it encounters until it reaches a move that has 
-already been seen, a dead end. Upon doing so, it retreats back up its path until it finds another path to pursue. Once a move is processed 
+already been seen or a dead end. Upon doing so, it retreats back up its path until it finds another path to pursue. Once a move is processed 
 in the Seen list, its Unseen children are placed in the beginning as opposed to the end. 
 	
 Iterative Deepening Search increments its depth by one every time it reaches the final node in a given depth. Much like DFS, child nodes 
